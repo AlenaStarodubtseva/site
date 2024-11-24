@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Админ панель</title>
+    <title>Админ-панель</title>
 </head>
 <body>
-    <h1>Заявки</h1>
+    <h1>Запросы студентов</h1>
     <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>ФИО</th>
-            <th>Группа</th>
-            <th>Тип справки</th>
-            <th>Дата создания</th>
-            <th>Действия</th>
-        </tr>
-        {% for req in requests %}
-        <tr>
-            <td>{{ req.id }}</td>
-            <td>{{ req.name }}</td>
-            <td>{{ req.group }}</td>
-            <td>{{ req.request_type }}</td>
-            <td>{{ req.created_at }}</td>
-            <td><a href="/generate/{{ req.id }}">Скачать справку</a></td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ФИО</th>
+                <th>Группа</th>
+                <th>Тип запроса</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request.id }}</td>
+                <td>{{ request.name }}</td>
+                <td>{{ request.group }}</td>
+                <td>{{ request.request_type }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 </body>
 </html>

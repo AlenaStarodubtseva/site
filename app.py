@@ -83,3 +83,11 @@ if __name__ == "__main__":
         with app.app_context():
             db.create_all()
     app.run(debug=True)
+
+@app.route("/admin", methods=["GET"])
+def admin():
+    # Получаем все запросы из базы данных
+    requests = Request.query.all()
+    # Показываем страницу с запросами
+    return render_template("admin.html", requests=requests)
+
