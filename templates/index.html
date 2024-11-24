@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Заказ справки</title>
+</head>
+<body>
+    <h1>Форма заказа справки</h1>
+    <form method="POST">
+        <label for="name">ФИО:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="group">Группа:</label><br>
+        <input type="text" id="group" name="group" required><br><br>
+        
+        <label for="request_type">Тип справки:</label><br>
+        <select id="request_type" name="request_type" required>
+            <option value="Справка об обучении">Справка об обучении</option>
+            <option value="Справка для военкомата">Справка для военкомата</option>
+        </select><br><br>
+        
+        <button type="submit">Отправить запрос</button>
+    </form>
+</body>
+</html>
