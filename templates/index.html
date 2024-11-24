@@ -35,6 +35,9 @@
         button:hover {
             background-color: #45a049;
         }
+        #period_field {
+            display: none; /* Скрываем поле для периода по умолчанию */
+        }
     </style>
     <script>
         function updateForm() {
@@ -75,9 +78,9 @@
             <option value="Справка с отметкой о стипендии">Справка с отметкой о стипендии</option>
         </select>
 
-        <div id="period_field" style="display: none;">
-            <label for="period">За какой период нужна справка:</label>
-            <input type="text" id="period" name="period">
+        <div id="period_field">
+            <label for="period">Выберите период:</label>
+            <input type="date" id="period" name="period">
         </div>
 
         <button type="submit">Отправить заявку</button>
