@@ -2,23 +2,85 @@
 <html>
 <head>
     <title>Заказ справки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            max-width: 400px;
+            width: 100%;
+        }
+        label {
+            font-size: 16px;
+            display: block;
+            margin-top: 15px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        function updateForm() {
+            const requestType = document.getElementById('request_type').value;
+            const periodField = document.getElementById('period_field');
+            if (requestType === "Справка с отметкой о стипендии") {
+                periodField.style.display = "block";
+            } else {
+                periodField.style.display = "none";
+            }
+        }
+    </script>
 </head>
 <body>
-    <h1>Форма заказа справки</h1>
+    <h1>Заказ справки</h1>
     <form method="POST">
-        <label for="name">ФИО:</label><br>
-        <input type="text" id="name" name="name" required><br><br>
-        
-        <label for="group">Группа:</label><br>
-        <input type="text" id="group" name="group" required><br><br>
-        
-        <label for="request_type">Тип справки:</label><br>
-        <select id="request_type" name="request_type" required>
-            <option value="Справка об обучении">Справка об обучении</option>
-            <option value="Справка для военкомата">Справка для военкомата</option>
-        </select><br><br>
-        
-        <button type="submit">Отправить запрос</button>
+        <label for="name">ФИО:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="course_group">Курс, группа:</label>
+        <select id="course_group" name="course_group" required>
+            <option value="1 курс, группа 1">1 курс, группа 1</option>
+            <option value="1 курс, группа 2">1 курс, группа 2</option>
+            <option value="2 курс, группа 1">2 курс, группа 1</option>
+            <option value="2 курс, группа 2">2 курс, группа 2</option>
+        </select>
+
+        <label for="destination">Куда нужна справка:</label>
+        <select id="destination" name="destination" required>
+            <option value="Для предоставления в военкомат">Для предоставления в военкомат</option>
+            <option value="Для предоставления в банк">Для предоставления в банк</option>
+            <option value="Для личного пользования">Для личного пользования</option>
+        </select>
+
+        <label for="request_type">Тип справки:</label>
+        <select id="request_type" name="request_type" onchange="updateForm()" required>
+            <option value="Справка без отметки о стипендии">Справка без отметки о стипендии</option>
+            <option value="Справка с отметкой о стипендии">Справка с отметкой о стипендии</option>
+        </select>
+
+        <div id="period_field" style="display: none;">
+            <label for="period">За какой период нужна справка:</label>
+            <input type="text" id="period" name="period">
+        </div>
+
+        <button type="submit">Отправить заявку</button>
     </form>
 </body>
 </html>

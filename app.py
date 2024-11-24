@@ -15,24 +15,39 @@ db = SQLAlchemy(app)
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    group = db.Column(db.String(50), nullable=False)
-    request_type = db.Column(db.String(50), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.now())
+    group = db.Column(db.String(100), nullable=False)
+    request_type = db.Column(db.String(100), nullable=False)
+    destination = db.Column(db.String(100), nullable=False)
+    period = db.Column(db.String(100), nullable=True)  # Добавили новое поле
+
 
 # Route for the main student form
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        name = request.form['name']
-        group = request.form['group']
-        request_type = request.form['request_type']
+        # Получение данных из формы
+        name = request.form.get('name')
+        course_group = request.form.get('course_group')
+        destination = request.form.get('destination')
+        request_type = request.form.get('request_type')
+        period = request.form.get('period') if request_type == "Справка с отметкой о стипендии" else None
 
-        # Save to database
-        new_request = Request(name=name, group=group, request_type=request_type)
+        # Сохранение в базу данных
+        new_request = Request(
+            name=name,
+            group=course_group,
+            request_type=request_type,
+            destination=destination,
+            period=period
+        )
         db.session.add(new_request)
         db.session.commit()
+
         return "Ваш запрос успешно отправлен!"
+
+    # Если метод GET, отображаем форму
     return render_template("index.html")
+
 
 # Admin view for handling requests
 @app.route("/admin", methods=["GET"])
