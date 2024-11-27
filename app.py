@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -12,22 +11,21 @@ db = SQLAlchemy(app)
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    course_group = db.Column(db.String(10), nullable=False)  # Формат: "1ИС"
-    destination = db.Column(db.String(200), nullable=False)  # Куда нужна справка
-    request_type = db.Column(db.String(200), nullable=False)  # Тип справки
-    period_start = db.Column(db.String(50), nullable=True)  # Дата начала периода (для справок с отметкой)
-    period_end = db.Column(db.String(50), nullable=True)  # Дата окончания периода (для справок с отметкой)
-    count = db.Column(db.Integer, nullable=False)  # Количество справок
-    status = db.Column(db.String(50), default="Не выполнено")  # Статус заявки (для справок без отметки)
+    course_group = db.Column(db.String(10), nullable=False)
+    destination = db.Column(db.String(200), nullable=False)
+    request_type = db.Column(db.String(200), nullable=False)
+    period_start = db.Column(db.String(50), nullable=True)
+    period_end = db.Column(db.String(50), nullable=True)
+    count = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(50), default="Не выполнено")
 
-# Главная страница с формой подачи заявки
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         name = request.form.get("name")
         course = request.form.get("course")
         group = request.form.get("group")
-        course_group = f"{course}{group}"  # Форматируем как "1ИС"
+        course_group = f"{course}{group}"
         destination = request.form.get("destination")
         request_type = request.form.get("request_type")
         count = int(request.form.get("count"))
@@ -60,42 +58,32 @@ def index():
 
     return render_template("index.html")
 
-# Страница администратора
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
         if "complete" in request.form:
-            # Пометить выбранные заявки как выполненные
             completed_ids = request.form.getlist("completed")
             for request_id in completed_ids:
                 req = Request.query.get(request_id)
                 req.status = "Выполнено"
                 db.session.commit()
-
         elif "delete" in request.form:
-            # Удаление выбранных заявок
             selected_ids = request.form.getlist("selected")
             for request_id in selected_ids:
                 req = Request.query.get(request_id)
                 db.session.delete(req)
                 db.session.commit()
-
         elif "archive" in request.form:
-            # Архивирование выбранных заявок (удаление после обработки)
             selected_ids = request.form.getlist("selected")
             for request_id in selected_ids:
                 req = Request.query.get(request_id)
                 db.session.delete(req)
                 db.session.commit()
-
         elif "generate" in request.form:
-            # Генерация общего документа
             selected_ids = request.form.getlist("selected")
-            # Здесь вы добавите логику для создания документа Word с помощью python-docx
             flash(f"Сформирован общий документ для {len(selected_ids)} заявок.")
             return redirect(url_for('admin'))
 
-    # Получение заявок
     requests_without_stipend = Request.query.filter_by(request_type="Справка без отметки о стипендии").all()
     requests_with_stipend = Request.query.filter_by(request_type="Справка с отметкой о стипендии").all()
     return render_template(
@@ -105,5 +93,6 @@ def admin():
     )
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
-

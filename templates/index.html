@@ -1,206 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Заказ справки</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        form {
-            display: inline-block;
-            text-align: left;
-            max-width: 400px;
-            width: 100%;
-        }
-        label {
-            font-size: 16px;
-            display: block;
-            margin-top: 15px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #period_field {
-            display: none; /* Скрываем поле для периода по умолчанию */
-        }
-        #course_error, #date_error {
-            color: red;
-            font-size: 14px;
-            display: none;
-        }
-        .row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-    </style>
-    <script>
-        function updateForm() {
-            const requestType = document.getElementById('request_type').value;
-            const destinationField = document.getElementById('destination');
-            const periodField = document.getElementById('period_field');
-            
-            // Очищаем варианты для "Куда нужна справка"
-            destinationField.innerHTML = "";
-
-            // Добавляем варианты в зависимости от типа справки
-            if (requestType === "Справка с отметкой о стипендии") {
-                periodField.style.display = "block";
-                const options = [
-                    "В отдел субсидий",
-                    "В отдел социальной защиты",
-                    "В фонд пенсионного и социального страхования Российской Федерации",
-                    "По месту требования"
-                ];
-                options.forEach(option => {
-                    const opt = document.createElement("option");
-                    opt.value = option;
-                    opt.textContent = option;
-                    destinationField.appendChild(opt);
-                });
-            } else {
-                periodField.style.display = "none";
-                const options = [
-                    "В отдел субсидий",
-                    "В отдел социальной защиты",
-                    "В фонд пенсионного и социального страхования Российской Федерации",
-                    "По месту работы родителей",
-                    "В налоговую инспекцию",
-                    "По месту работы обучающихся",
-                    "По месту требования",
-                    "В суд"
-                ];
-                options.forEach(option => {
-                    const opt = document.createElement("option");
-                    opt.value = option;
-                    opt.textContent = option;
-                    destinationField.appendChild(opt);
-                });
-            }
-        }
-
-        function validateCourse() {
-            const course = parseInt(document.getElementById("course").value); // Курс
-            const group = document.getElementById("group").value; // Группа
-            const errorField = document.getElementById("course_error"); // Поле ошибки
-
-            // Проверяем ограничения по курсу и группе
-            if (["ИС", "МО", "ЭУ", "СПИ", "СПД"].includes(group) && course > 4) {
-                errorField.style.display = "block";
-                errorField.innerText = "Для выбранной группы курс не может быть больше 4.";
-                return false;
-            } else if (["МФМО", "МХПО"].includes(group) && course > 2) {
-                errorField.style.display = "block";
-                errorField.innerText = "Для выбранной группы курс не может быть больше 2.";
-                return false;
-            } else {
-                errorField.style.display = "none";
-                return true;
-            }
-        }
-
-        function validateDates() {
-            const startDate = document.getElementById("start_date").value;
-            const endDate = document.getElementById("end_date").value;
-            const errorField = document.getElementById("date_error");
-
-            if (startDate && endDate && startDate > endDate) {
-                errorField.style.display = "block";
-                return false;
-            } else {
-                errorField.style.display = "none";
-                return true;
-            }
-        }
-
-        function validateForm() {
-            return validateCourse() && validateDates();
-        }
-
-        // Вызываем updateForm при загрузке страницы
-        window.onload = function() {
-            updateForm();
-        };
-    </script>
 </head>
 <body>
     <h1>Заказ справки</h1>
-    <form method="POST" onsubmit="return validateForm()">
-        <label for="name">ФИО:</label>
-        <input type="text" id="name" name="name" required>
-
-        <div class="row">
-            <div>
-                <label for="course">Курс:</label>
-                <select id="course" name="course" onchange="validateCourse()" required>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
-            </div>
-            <div>
-                <label for="group">Группа:</label>
-                <select id="group" name="group" onchange="validateCourse()" required>
-                    <option value="ИС">ИС</option>
-                    <option value="МО">МО</option>
-                    <option value="ЭУ">ЭУ</option>
-                    <option value="ДТ">ДТ</option>
-                    <option value="ИД">ИД</option>
-                    <option value="ИМ">ИМ</option>
-                    <option value="ИФ">ИФ</option>
-                    <option value="МФ">МФ</option>
-                    <option value="ТЭ">ТЭ</option>
-                    <option value="ЭМ">ЭМ</option>
-                    <option value="МФМО">МФМО</option>
-                    <option value="МХПО">МХПО</option>
-                    <option value="СПИ">СПИ</option>
-                    <option value="СПД">СПД</option>
-                </select>
-            </div>
-        </div>
-        <p id="course_error">Ошибка выбора курса или группы.</p>
-
-        <label for="request_type">Тип справки:</label>
-        <select id="request_type" name="request_type" onchange="updateForm()" required>
+    <form method="POST">
+        <label>ФИО:</label>
+        <input type="text" name="name" required><br>
+        <label>Курс:</label>
+        <select name="course" required>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <label>Группа:</label>
+        <select name="group" required>
+            <option value="ИС">ИС</option>
+            <option value="МО">МО</option>
+            <option value="ЭУ">ЭУ</option>
+            <!-- Остальные группы -->
+        </select><br>
+        <label>Куда нужна справка:</label>
+        <select name="destination" required>
+            <option value="В отдел субсидий">В отдел субсидий</option>
+            <option value="В отдел социальной защиты">В отдел социальной защиты</option>
+            <!-- Остальные варианты -->
+        </select><br>
+        <label>Тип справки:</label>
+        <select name="request_type" required>
             <option value="Справка без отметки о стипендии">Справка без отметки о стипендии</option>
             <option value="Справка с отметкой о стипендии">Справка с отметкой о стипендии</option>
-        </select>
-
-        <label for="destination">Куда нужна справка:</label>
-        <select id="destination" name="destination" required></select>
-
-        <div id="period_field">
-            <label for="start_date">Период:</label>
-            <div class="row">
-                <span>с</span>
-                <input type="date" id="start_date" name="start_date" onchange="validateDates()">
-                <span>по</span>
-                <input type="date" id="end_date" name="end_date" onchange="validateDates()">
-            </div>
-            <p id="date_error">Дата начала не может быть позже даты окончания.</p>
-        </div>
-
-        <label for="count">Количество справок:</label>
-        <input type="number" id="count" name="count" min="1" max="10" required>
-
+        </select><br>
+        <label>Количество справок:</label>
+        <input type="number" name="count" min="1" required><br>
+        <label>Период (если нужно):</label>
+        <input type="date" name="start_date">
+        <input type="date" name="end_date"><br>
         <button type="submit">Отправить заявку</button>
     </form>
 </body>
 </html>
+
