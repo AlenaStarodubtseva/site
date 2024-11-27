@@ -22,6 +22,7 @@ class Request(db.Model):
     period_start = db.Column(db.String(50), nullable=True)  # Начало периода (если есть)
     period_end = db.Column(db.String(50), nullable=True)  # Конец периода (если есть)
     count = db.Column(db.Integer, nullable=False)  # Количество справок
+    status = db.Column(db.String(50), default="Не выполнено")  # Статус заявки
 
 # Главная страница с формой
 @app.route("/", methods=["GET", "POST"])
@@ -74,11 +75,14 @@ def index():
 
 
 
-# Админ-панель для просмотра запросов
-@app.route("/admin", methods=["GET"])
+@app.route("/admin")
 def admin():
-    requests = Request.query.all()
-    return render_template("admin.html", requests=requests)
+    # Получение заявок из базы данных
+    requests_without_stipend = Request.query.filter_by(request_type="Справка без отметки о стипендии").all()
+    requests_with_stipend = Request.query.filter_by(request_type="Справка с отметкой о стипендии").all()
+    return render_template("admin.html",
+                           requests_without_stipend=requests_without_stipend,
+                           requests_with_stipend=requests_with_stipend)
 
 if __name__ == "__main__":
     app.run(debug=True)
