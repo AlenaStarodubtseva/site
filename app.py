@@ -1,16 +1,12 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from datetime import datetime  # Для преобразования дат
+from sqlalchemy import or_
 
-# Инициализация приложения
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///requests.db'  # Настройка базы данных
+app.secret_key = "your_secret_key"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///requests.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Инициализация базы данных
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 
 # Модель базы данных
 class Request(db.Model):
@@ -19,12 +15,17 @@ class Request(db.Model):
     course_group = db.Column(db.String(10), nullable=False)  # Формат: "1ИС"
     destination = db.Column(db.String(200), nullable=False)  # Куда нужна справка
     request_type = db.Column(db.String(200), nullable=False)  # Тип справки
-    period_start = db.Column(db.String(50), nullable=True)  # Начало периода (если есть)
-    period_end = db.Column(db.String(50), nullable=True)  # Конец периода (если есть)
+    period_start = db.Column(db.String(50), nullable=True)  # Дата начала периода (для справок с отметкой)
+    period_end = db.Column(db.String(50), nullable=True)  # Дата окончания периода (для справок с отметкой)
     count = db.Column(db.Integer, nullable=False)  # Количество справок
-    status = db.Column(db.String(50), default="Не выполнено")  # Статус заявки
+    status = db.Column(db.String(50), default="Не выполнено")  # Статус заявки (для справок без отметки)
 
-# Главная страница с формой
+# Создание базы данных
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+# Главная страница с формой подачи заявки
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -34,55 +35,80 @@ def index():
         course_group = f"{course}{group}"  # Форматируем как "1ИС"
         destination = request.form.get("destination")
         request_type = request.form.get("request_type")
-        period_start = request.form.get("start_date")  # Дата начала периода
-        period_end = request.form.get("end_date")  # Дата окончания периода
-        count = int(request.form.get("count"))  # Количество справок
+        count = int(request.form.get("count"))
+        period_start = request.form.get("start_date") if request_type == "Справка с отметкой о стипендии" else None
+        period_end = request.form.get("end_date") if request_type == "Справка с отметкой о стипендии" else None
 
-        # Проверяем ограничения для курса и группы
-        if group in ["ИС", "МО", "ЭУ", "СПИ", "СПД"] and course > 4:
-            return "Ошибка: Для выбранной группы курс не может быть больше 4."
-        if group in ["МФМО", "МХПО"] and course > 2:
-            return "Ошибка: Для выбранной группы курс не может быть больше 2."
+        # Проверка правильности данных
+        if group in ["МФМО", "МХПО"] and int(course) > 2:
+            flash("Группы МФМО и МХПО не могут быть старше 2 курса!")
+            return redirect(url_for('index'))
+        elif group in ["ИС", "МО", "ЭУ", "СПИ", "СПД"] and int(course) > 4:
+            flash("Эта группа не может быть старше 4 курса!")
+            return redirect(url_for('index'))
 
-        # Обрабатываем период
-        if start_date and end_date:
-            if start_date > end_date:
-                return "Ошибка: Дата начала не может быть позже даты окончания."
-
-            start_date_formatted = datetime.strptime(start_date, "%Y-%m-%d").strftime("%d.%m.%Y")
-            end_date_formatted = datetime.strptime(end_date, "%Y-%m-%d").strftime("%d.%m.%Y")
-            period = f"с {start_date_formatted} по {end_date_formatted}"
-        else:
-            period = None
-
-        # Форматируем курс и группу
-        course_group = f"{course}{group}"  # Например, "1ИС"
-
-        # Сохраняем данные в базе
+        # Создание новой заявки
         new_request = Request(
             name=name,
-            group=course_group,
-            request_type=request_type,
+            course_group=course_group,
             destination=destination,
-            period=period
+            request_type=request_type,
+            period_start=period_start,
+            period_end=period_end,
+            count=count
         )
         db.session.add(new_request)
         db.session.commit()
-        return "Ваш запрос успешно отправлен!"
+
+        flash("Заявка успешно подана!")
+        return redirect(url_for('index'))
 
     return render_template("index.html")
 
-
-
-
-@app.route("/admin")
+# Страница администратора
+@app.route("/admin", methods=["GET", "POST"])
 def admin():
-    # Получение заявок из базы данных
+    if request.method == "POST":
+        if "complete" in request.form:
+            # Пометить выбранные заявки как выполненные
+            completed_ids = request.form.getlist("completed")
+            for request_id in completed_ids:
+                req = Request.query.get(request_id)
+                req.status = "Выполнено"
+                db.session.commit()
+
+        elif "delete" in request.form:
+            # Удаление выбранных заявок
+            selected_ids = request.form.getlist("selected")
+            for request_id in selected_ids:
+                req = Request.query.get(request_id)
+                db.session.delete(req)
+                db.session.commit()
+
+        elif "archive" in request.form:
+            # Архивирование выбранных заявок (удаление после обработки)
+            selected_ids = request.form.getlist("selected")
+            for request_id in selected_ids:
+                req = Request.query.get(request_id)
+                db.session.delete(req)
+                db.session.commit()
+
+        elif "generate" in request.form:
+            # Генерация общего документа
+            selected_ids = request.form.getlist("selected")
+            # Здесь вы добавите логику для создания документа Word с помощью python-docx
+            flash(f"Сформирован общий документ для {len(selected_ids)} заявок.")
+            return redirect(url_for('admin'))
+
+    # Получение заявок
     requests_without_stipend = Request.query.filter_by(request_type="Справка без отметки о стипендии").all()
     requests_with_stipend = Request.query.filter_by(request_type="Справка с отметкой о стипендии").all()
-    return render_template("admin.html",
-                           requests_without_stipend=requests_without_stipend,
-                           requests_with_stipend=requests_with_stipend)
+    return render_template(
+        "admin.html",
+        requests_without_stipend=requests_without_stipend,
+        requests_with_stipend=requests_with_stipend
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
+
