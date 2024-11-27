@@ -20,11 +20,6 @@ class Request(db.Model):
     count = db.Column(db.Integer, nullable=False)  # Количество справок
     status = db.Column(db.String(50), default="Не выполнено")  # Статус заявки (для справок без отметки)
 
-# Создание базы данных
-@app.before_first_request
-def create_tables():
-    db.create_all()
-
 # Главная страница с формой подачи заявки
 @app.route("/", methods=["GET", "POST"])
 def index():
