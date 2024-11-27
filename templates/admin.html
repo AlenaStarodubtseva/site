@@ -1,29 +1,148 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Админ-панель</title>
+    <title>Администрирование</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .content {
+            display: none;
+        }
+        .content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll(".tab");
+            const contents = document.querySelectorAll(".content");
+            
+            tabs.forEach(tab => {
+                tab.classList.remove("active");
+            });
+            contents.forEach(content => {
+                content.classList.remove("active");
+            });
+            
+            document.getElementById(tabName).classList.add("active");
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add("active");
+        }
+
+        function selectAll(checkbox, tableId) {
+            const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+        }
+
+        function deleteSelected(tableId) {
+            const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+            rows.forEach(row => {
+                const checkbox = row.querySelector("input[type='checkbox']");
+                if (checkbox.checked) {
+                    row.remove();
+                }
+            });
+        }
+
+        function generateDocument() {
+            alert("Функция формирования общего документа сейчас реализуется.");
+            // Реализация формирования Word-документа будет здесь.
+        }
+
+        function archiveSelected(tableId) {
+            alert("Выбранные заявки перемещены в архив.");
+            deleteSelected(tableId);
+        }
+    </script>
 </head>
 <body>
-    <h1>Запросы студентов</h1>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>ФИО</th>
-                <th>Группа</th>
-                <th>Тип запроса</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for request in requests %}
-            <tr>
-                <td>{{ request.id }}</td>
-                <td>{{ request.name }}</td>
-                <td>{{ request.group }}</td>
-                <td>{{ request.request_type }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h1>Администрирование</h1>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="without-stipend" onclick="switchTab('without-stipend')">Справки без отметки</div>
+        <div class="tab" data-tab="with-stipend" onclick="switchTab('with-stipend')">Справки с отметкой</div>
+    </div>
+
+    <div id="without-stipend" class="content active">
+        <h2>Справки без отметки о стипендии</h2>
+        <table id="without-stipend-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" onclick="selectAll(this, 'without-stipend-table')"></th>
+                    <th>ФИО</th>
+                    <th>Курс, группа</th>
+                    <th>Куда</th>
+                    <th>Количество</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Данные заполняются динамически -->
+            </tbody>
+        </table>
+        <button onclick="deleteSelected('without-stipend-table')">Удалить выбранные</button>
+    </div>
+
+    <div id="with-stipend" class="content">
+        <h2>Справки с отметкой о стипендии</h2>
+        <table id="with-stipend-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" onclick="selectAll(this, 'with-stipend-table')"></th>
+                    <th>ФИО</th>
+                    <th>Курс, группа</th>
+                    <th>Куда</th>
+                    <th>Количество</th>
+                    <th>Период</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Данные заполняются динамически -->
+            </tbody>
+        </table>
+        <button onclick="generateDocument()">Сформировать общий документ</button>
+        <button onclick="archiveSelected('with-stipend-table')">Переместить в архив</button>
+        <button onclick="deleteSelected('with-stipend-table')">Удалить выбранные</button>
+    </div>
 </body>
 </html>
