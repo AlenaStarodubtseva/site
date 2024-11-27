@@ -4,12 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Заказ справки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 5px;
+        }
+        button {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <h1>Заказ справки</h1>
     <form method="POST">
         <label>ФИО:</label>
-        <input type="text" name="name" required><br>
+        <input type="text" name="name" required>
         <label>Курс:</label>
         <select name="course" required>
             <option value="1">1</option>
@@ -24,25 +49,24 @@
             <option value="МО">МО</option>
             <option value="ЭУ">ЭУ</option>
             <!-- Остальные группы -->
-        </select><br>
+        </select>
         <label>Куда нужна справка:</label>
         <select name="destination" required>
             <option value="В отдел субсидий">В отдел субсидий</option>
             <option value="В отдел социальной защиты">В отдел социальной защиты</option>
             <!-- Остальные варианты -->
-        </select><br>
+        </select>
         <label>Тип справки:</label>
         <select name="request_type" required>
             <option value="Справка без отметки о стипендии">Справка без отметки о стипендии</option>
             <option value="Справка с отметкой о стипендии">Справка с отметкой о стипендии</option>
-        </select><br>
+        </select>
         <label>Количество справок:</label>
-        <input type="number" name="count" min="1" required><br>
+        <input type="number" name="count" min="1" required>
         <label>Период (если нужно):</label>
         <input type="date" name="start_date">
-        <input type="date" name="end_date"><br>
+        <input type="date" name="end_date">
         <button type="submit">Отправить заявку</button>
     </form>
 </body>
 </html>
-
