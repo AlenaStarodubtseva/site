@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from flask_sqlalchemy import SQLAlchemy
 from io import BytesIO
 from docx import Document
+import pytz
 import datetime
 from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
@@ -15,7 +16,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///requests.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
-
+timezone = pytz.timezone("Asia/Tokyo")
+current_time = datetime.datetime.now(timezone).strftime('%d.%m.%Y')
 # Модель данных
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
