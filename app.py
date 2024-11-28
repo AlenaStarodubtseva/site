@@ -16,8 +16,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///requests.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
-timezone = pytz.timezone("Asia/Tokyo")
-current_time = datetime.datetime.now(timezone).strftime('%d.%m.%Y')
+
+def get_current_time_japan():
+    japan_timezone = pytz.timezone('Asia/Tokyo')
+    current_time = datetime.datetime.now(japan_timezone)
+    return current_time  # Вернем объект datetime, а не строку
+
 # Модель данных
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -131,7 +135,7 @@ def handle_requests():
         
         # Заголовок документа
         title = doc.add_heading(level=1)
-        run = title.add_run(f"Заявка на справки {datetime.datetime.now().strftime('%d.%m.%Y')} факультета физико-математического образования и технологии")
+        run = title.add_run(f"Заявка на справки {get_current_time_japan().strftime('%d.%m.%Y')} факультета физико-математического образования и технологии")
         run.bold = True
         run.font.name = 'Times New Roman'
         run.font.size = Pt(13)
