@@ -11,12 +11,12 @@ from docx.shared import RGBColor
 from flask_migrate import Migrate
 import os
 
-port = int(os.environ.get("PORT", 5000))
-app.run(host='0.0.0.0', port=port)
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///requests.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+port = int(os.environ.get("PORT", 5000))
+app.run(host='0.0.0.0', port=port)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
