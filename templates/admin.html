@@ -42,7 +42,9 @@
             </tr>
             {% endfor %}
         </table>
-        <button type="submit">Удалить</button>
+        <button type="submit" name="action" value="delete">Удалить</button>
+        <button type="submit" name="action" value="archive">Архивировать</button>
+        <button type="submit" name="action" value="view_archive">Просмотреть архив</button>
     </form>
     <h2>Справки с отметкой о стипендии</h2>
     <form method="POST" action="/handle-requests">
@@ -66,8 +68,10 @@
         </tr>
         {% endfor %}
     </table>
-    <button type="submit" name="action" value="delete">Удалить</button>
-    <button type="submit" name="action" value="generate">Сформировать общий документ</button>
+	<button type="submit" name="action" value="delete">Удалить</button>
+        <button type="submit" name="action" value="archive">Архивировать</button>
+        <button type="submit" name="action" value="view_archive">Просмотреть архив</button>
+        <button type="submit" name="action" value="generate">Сформировать общий документ</button>
 </form>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

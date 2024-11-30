@@ -8,6 +8,8 @@ from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.shared import RGBColor
+from flask_migrate import Migrate
+
 
 
 app = Flask(__name__)
@@ -16,6 +18,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///requests.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 def get_current_time_japan():
     japan_timezone = pytz.timezone('Asia/Tokyo')
@@ -33,6 +36,38 @@ class Request(db.Model):
     period_start = db.Column(db.Date, nullable=True)
     period_end = db.Column(db.Date, nullable=True)
     created_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+class ArchiveWithScholarship(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.Integer, nullable=False)
+    processed_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    admin_comment = db.Column(db.String(200), nullable=True)
+    name = db.Column(db.String(200), nullable=False)  # Это поле отсутствует в таблице
+    course_group = db.Column(db.String(10), nullable=False)
+    destination = db.Column(db.String(200), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    period_start = db.Column(db.Date, nullable=True)
+    period_end = db.Column(db.Date, nullable=True)
+    request_type = db.Column(db.String(100), nullable=False)
+
+
+class ArchiveWithoutScholarship(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.Integer, nullable=False)  # ID из основной таблицы
+    processed_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)  # Дата обработки
+    admin_comment = db.Column(db.String(200), nullable=True)  # Комментарий администратора
+    name = db.Column(db.String(200), nullable=False)  # Имя заявителя
+    course_group = db.Column(db.String(50), nullable=False)  # Курс и группа
+    destination = db.Column(db.String(200), nullable=False)  # Место, куда нужна справка
+    quantity = db.Column(db.Integer, nullable=False)  # Количество справок
+    period_start = db.Column(db.Date, nullable=True)  # Период начала (если применимо)
+    period_end = db.Column(db.Date, nullable=True)  # Период окончания (если применимо)
+    request_type = db.Column(db.String(100), nullable=False)  # Тип справки
+
+
+with app.app_context():
+    db.create_all()
+
 
 # Главная страница (заявка)
 @app.route("/", methods=["GET", "POST"])
@@ -96,17 +131,117 @@ def admin():
     requests_without_stipend = Request.query.filter_by(request_type="Справка без отметки о стипендии").all()
     return render_template("admin.html", requests_with_stipend=requests_with_stipend, requests_without_stipend=requests_without_stipend)
 
-# Удаление заявок
+
+@app.route('/archive/without-scholarship', methods=['GET', 'POST'])
+def archive_without_scholarship():
+    if request.method == 'POST':
+        # Получение выбранных заявок из архива
+        selected_ids = request.form.getlist("selected_ids")
+        action = request.form.get("action")
+        if action == "return":
+            # Возврат заявок в админ-панель
+            archived_requests = ArchiveWithoutScholarship.query.filter(ArchiveWithoutScholarship.id.in_(selected_ids)).all()
+            for archived_request in archived_requests:
+                # Перенос из архива в Requests
+                original_request = Request(
+                    id=archived_request.request_id,
+                    name=archived_request.name,
+                    course_group=archived_request.course_group,
+                    destination=archived_request.destination,
+                    request_type="Справка без отметки о стипендии",
+                    quantity=archived_request.quantity,
+                    period_start=archived_request.period_start,
+                    period_end=archived_request.period_end,
+                )
+                db.session.add(original_request)
+                db.session.delete(archived_request)
+            db.session.commit()
+            flash("Заявки успешно возвращены в админ-панель", "success")
+        elif action == "delete":
+            # Удаление выбранных заявок
+            ArchiveWithoutScholarship.query.filter(ArchiveWithoutScholarship.id.in_(selected_ids)).delete()
+            db.session.commit()
+            flash("Заявки успешно удалены", "success")
+    archived_requests = ArchiveWithoutScholarship.query.all()
+    return render_template("archive_without_scholarship.html", requests=archived_requests)
+
+
+@app.route('/archive/with-scholarship', methods=['GET', 'POST'])
+def archive_with_scholarship():
+    if request.method == 'POST':
+        # Получение выбранных заявок из архива
+        selected_ids = request.form.getlist("selected_ids")
+        action = request.form.get("action")
+        if action == "return":
+            # Возврат заявок в админ-панель
+            archived_requests = ArchiveWithScholarship.query.filter(ArchiveWithScholarship.id.in_(selected_ids)).all()
+            for archived_request in archived_requests:
+                # Перенос из архива в Requests
+                original_request = Request(
+                    id=archived_request.request_id,
+                    name=archived_request.name,
+                    course_group=archived_request.course_group,
+                    destination=archived_request.destination,
+                    request_type="Справка с отметкой о стипендии",
+                    quantity=archived_request.quantity,
+                    period_start=archived_request.period_start,
+                    period_end=archived_request.period_end,
+                )
+                db.session.add(original_request)
+                db.session.delete(archived_request)
+            db.session.commit()
+            flash("Заявки успешно возвращены в админ-панель", "success")
+        elif action == "delete":
+            # Удаление выбранных заявок
+            ArchiveWithScholarship.query.filter(ArchiveWithScholarship.id.in_(selected_ids)).delete()
+            db.session.commit()
+            flash("Заявки успешно удалены", "success")
+    archived_requests = ArchiveWithScholarship.query.all()
+    return render_template("archive_with_scholarship.html", requests=archived_requests)
+
+
+# без отметки
 @app.route("/delete", methods=["POST"])
-def delete():
-    ids_to_delete = request.form.getlist("delete_ids")
-    for request_id in ids_to_delete:
-        request_to_delete = Request.query.get(request_id)
-        db.session.delete(request_to_delete)
-    db.session.commit()
-    flash("Выбранные заявки удалены.")
+def handle_requests_without_stipend():
+    selected_ids = request.form.getlist("delete_ids")
+    action = request.form.get("action")
+
+    if action == "delete":
+        # Удаление заявок
+        requests_to_delete = Request.query.filter(Request.id.in_(selected_ids)).all()
+        for req in requests_to_delete:
+            db.session.delete(req)
+        db.session.commit()
+        flash("Выбранные заявки удалены.", "success")
+    elif action == "archive":
+        # Архивирование заявок
+        requests_to_archive = Request.query.filter(Request.id.in_(selected_ids)).all()
+        for req in requests_to_archive:
+            archived_request = ArchiveWithoutScholarship(
+                request_id=req.id,
+                processed_date=datetime.datetime.now(),
+                admin_comment="Справка добавлена в архив",
+                name=req.name,
+                course_group=req.course_group,
+                destination=req.destination,
+                quantity=req.quantity,
+                period_start=req.period_start,
+                period_end=req.period_end,
+                request_type=req.request_type
+            )
+            db.session.add(archived_request)
+            db.session.delete(req)  # Удаляем из основной таблицы
+            
+        db.session.commit()  # Сохраняем изменения
+        flash("Выбранные заявки архивированы.", "success")
+        return redirect(url_for('admin'))
+    elif action == "view_archive":
+        # Перенаправление на архив
+        return redirect("/archive/without-scholarship")
+
     return redirect("/admin")
 
+# с отметкой
 @app.route('/handle-requests', methods=['POST'])
 def handle_requests():
     selected_ids = request.form.getlist('request_ids')  # Получаем выбранные ID заявок
@@ -122,6 +257,30 @@ def handle_requests():
         flash("Выбранные заявки успешно удалены", "success")
         return redirect(url_for('admin'))
 
+    elif action == "archive":
+        # Архивирование заявок
+        requests_to_archive = Request.query.filter(Request.id.in_(selected_ids)).all()
+        for req in requests_to_archive:
+            archived_request = ArchiveWithScholarship(
+                request_id=req.id,
+                processed_date=datetime.datetime.now(),
+                admin_comment="Справка добавлена в архив",
+                name=req.name,
+                course_group=req.course_group,
+                destination=req.destination,
+                quantity=req.quantity,
+                period_start=req.period_start,
+                period_end=req.period_end,
+                request_type=req.request_type
+            )
+            db.session.add(archived_request)
+            db.session.delete(req)  # Удаляем из основной таблицы
+            
+        db.session.commit()  # Сохраняем изменения
+        return redirect(url_for('admin'))
+    elif action == "view_archive":
+        # Перенаправление на архив
+        return redirect("/archive/with-scholarship")
     elif action == "generate":
         # Генерация общего документа
         selected_requests = Request.query.filter(Request.id.in_(selected_ids)).all()
@@ -198,7 +357,4 @@ def handle_requests():
         flash("Неизвестное действие", "error")
         return redirect(url_for('admin'))
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+
