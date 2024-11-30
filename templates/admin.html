@@ -24,7 +24,7 @@
 
     <h2>Справки без отметки о стипендии</h2>
     <form method="POST" action="/delete">
-        <table border="1">
+        <table class="table table-bordered">
             <tr>
                 <th>Выбрать</th>
                 <th>ФИО</th>
@@ -42,13 +42,13 @@
             </tr>
             {% endfor %}
         </table>
-        <button type="submit" name="action" value="delete">Удалить</button>
-        <button type="submit" name="action" value="archive">Архивировать</button>
-        <button type="submit" name="action" value="view_archive">Просмотреть архив</button>
+        <button type="submit" name="action" value="delete" class="btn btn-danger">Удалить</button>
+        <button type="submit" name="action" value="archive" class="btn btn-success">Архивировать</button>
+        <button type="submit" name="action" value="view_archive" class="btn btn-primary">Просмотреть архив</button>
     </form>
     <h2>Справки с отметкой о стипендии</h2>
     <form method="POST" action="/handle-requests">
-    <table border="1">
+    <table class="table table-bordered">
         <tr>
             <th>Выбрать</th>
             <th>ФИО</th>
@@ -68,11 +68,10 @@
         </tr>
         {% endfor %}
     </table>
-	<button type="submit" name="action" value="delete">Удалить</button>
-        <button type="submit" name="action" value="archive">Архивировать</button>
-        <button type="submit" name="action" value="view_archive">Просмотреть архив</button>
-        <button type="submit" name="action" value="generate">Сформировать общий документ</button>
+	<button type="submit" name="action" value="delete" class="btn btn-danger">Удалить</button>
+        <button type="submit" name="action" value="archive" class="btn btn-success">Архивировать</button>
+        <button type="submit" name="action" value="view_archive" class="btn btn-primary">Просмотреть архив</button>
+        <button type="submit" name="action" value="generate" class="btn btn-success">Сформировать общий документ</button>
 </form>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
