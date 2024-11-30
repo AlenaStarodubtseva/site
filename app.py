@@ -9,9 +9,10 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.shared import RGBColor
 from flask_migrate import Migrate
+import os
 
-
-
+port = int(os.environ.get("PORT", 5000))
+app.run(host='0.0.0.0', port=port)
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///requests.db"
