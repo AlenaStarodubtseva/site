@@ -62,11 +62,6 @@ class ArchiveWithoutScholarship(db.Model):
     period_end = db.Column(db.Date, nullable=True)  # Период окончания (если применимо)
     request_type = db.Column(db.String(100), nullable=False)  # Тип справки
 
-
-with app.app_context():
-    db.create_all()
-
-
 # Главная страница (заявка)
 @app.route("/", methods=["GET", "POST"])
 def index():
